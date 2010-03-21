@@ -30,7 +30,7 @@ public class JawbreakerGame {
 		{
 			for(int y=0; y < height; y++)
 			{
-				this.gamemap[x][y] = rng.nextInt(4);
+				this.gamemap[x][y] = rng.nextInt(2);
 			}
 		}
 		
@@ -88,7 +88,28 @@ public class JawbreakerGame {
 	
 	public boolean isGameOver()
 	{
-		return false;
+		//if(true) return false;
+		
+		
+		boolean old[][];
+		old = this.selectmap.clone();
+		
+		for(int x=0; x < width; x++)
+		{
+			for(int y=0; y < height; y++)
+			{
+				this.selectmap = new boolean[width][height];
+				this.selectNeighbours(x, y);
+				if(this.getSelectCount() > 1)
+				{
+					this.selectmap = old;
+					return false;
+				}
+			}
+		}
+
+		this.selectmap = old;
+		return true;
 	}
 	
 	public Statistics getStatistics()
@@ -96,7 +117,7 @@ public class JawbreakerGame {
 		return this.stats;
 	}
 	
-	private boolean isInGamebounds(int x, int y)
+	private boolean isInBound(int x, int y)
 	{
 		if(x < 0 || x >= this.width)
 			return false;
@@ -108,24 +129,48 @@ public class JawbreakerGame {
 	}
 	
 	private void selectNeighbours(int x, int y)
-	{		
+	{
+		if(!isInBound(x, y))
+			return;
+		
+		this.selectNeighbours(x, y, this.gamemap[x][y]);
+	}
+	
+	private void selectNeighbours(int x, int y, int color)
+	{
+		if(!isInBound(x, y) || this.gamemap[x][y] != -1 |
+			this.gamemap[x][y] != color || this.selectmap[x][y])
+			return;
+
+		this.selectmap[x][y] = true;
+
+		this.selectNeighbours(x-1, y, color);
+		this.selectNeighbours(x+1, y, color);
+		this.selectNeighbours(x, y-1, color);
+		this.selectNeighbours(x, y+1, color);
+		
+	}
+	
+	/*private void selectNeighbours_old(int x, int y)
+	{	
+		
 		int color = this.gamemap[x][y];
 		if(color == -1 || this.selectmap[x][y]) return;
 		
 		this.selectmap[x][y] = true;
 		
-		if(isInGamebounds(x-1, y) && this.gamemap[x-1][y] == color)
+		if(isInBound(x-1, y) && this.gamemap[x-1][y] == color)
 			this.selectNeighbours(x-1, y);
 		
-		if(isInGamebounds(x+1, y) && this.gamemap[x+1][y] == color)
+		if(isInBound(x+1, y) && this.gamemap[x+1][y] == color)
 			this.selectNeighbours(x+1, y);
 		
-		if(isInGamebounds(x, y-1) && this.gamemap[x][y-1] == color)
+		if(isInBound(x, y-1) && this.gamemap[x][y-1] == color)
 			this.selectNeighbours(x, y-1);
 		
-		if(isInGamebounds(x, y+1) && this.gamemap[x][y+1] == color)
+		if(isInBound(x, y+1) && this.gamemap[x][y+1] == color)
 			this.selectNeighbours(x, y+1);
-	}
+	}*/
 	
 	private void deleteSelected()
 	{
@@ -143,28 +188,28 @@ public class JawbreakerGame {
 	{
 		for(int x=0; x < width; x++)
 		{
-			this.doRowGravity(x);
-		}
-	}
-	
-	private void doRowGravity(int row)
-	{
-		for(int y=height-1; y >= 0; y--)
-		{
-			if(this.gamemap[row][y] == -1)
+			for(int y=height-1; y >= 0; y--)
 			{
-				for(int y2=y; y2 >= 0; y2--)
+				if(this.gamemap[x][y] == -1)
 				{
-					if(this.gamemap[row][y2] != -1)
+					for(int y2=y; y2 >= 0; y2--)
 					{
-						this.gamemap[row][y] = this.gamemap[row][y2];
-						this.gamemap[row][y2] = -1;
-						break;
+						if(this.gamemap[x][y2] != -1)
+						{
+							this.gamemap[x][y] = this.gamemap[x][y2];
+							this.gamemap[x][y2] = -1;
+							break;
+						}
 					}
 				}
 			}
 		}
 	}
+	
+	/*private void doRowGravity(int row)
+	{
+
+	}*/
 	
 	private void doShift()
 	{
@@ -176,23 +221,12 @@ public class JawbreakerGame {
 				{
 					if(!this.isRowEmpty(x2))
 					{
-						this.gamemap[x] = this.gamemap[x2];
-						this.emptyRow(x2);
+						switchRows(x, x2);
 						break;
 					}
 				}
 			}
 		}
-		/*
-		for(int x=0; x < width; x++)
-		{
-			this.doRowShift(x);
-		}*/
-	}
-	
-	private void doRowShift(int row)
-	{
-		
 	}
 	
 	private boolean isRowEmpty(int row)
@@ -205,11 +239,13 @@ public class JawbreakerGame {
 		return true;
 	}
 	
-	private void emptyRow(int row)
+	private void switchRows(int r1, int r2)
 	{
-		for(int y=0; y < height; y++)
+		for(int y=height-1; y >= 0; y--)
 		{
-			this.gamemap[row][y]= -1;
+			int temp = this.gamemap[r1][y];
+			this.gamemap[r1][y] = this.gamemap[r2][y];
+			this.gamemap[r2][y] = temp;
 		}
 	}
 	

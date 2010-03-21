@@ -18,12 +18,12 @@ public class Jawbreaker extends JFrame {
     /** 
      * Feldbreite in Zellen.
      */
-    private static final int WIDTH = 11;
+    private static final int WIDTH = 5; //11;
 
     /** 
      * Feldhöhe in Zellen.
      */
-    private static final int HEIGHT = 12;
+    private static final int HEIGHT = 5; //12;
 
     /**
      * Referenz auf die Spiellogik.
